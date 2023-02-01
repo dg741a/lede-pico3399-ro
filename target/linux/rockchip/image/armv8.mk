@@ -192,6 +192,16 @@ define Device/rocktech_mpc1903
 endef
 TARGET_DEVICES += rocktech_mpc1903
 
+define Device/rockchip_pico3399
+  DEVICE_VENDOR := rockchip
+  DEVICE_MODEL := pico3399
+  SOC := rk3399
+  UBOOT_DEVICE_NAME := rockchip-pico3399-rk3399
+  IMAGE/sysupgrade.img.gz := boot-common | boot-script | pine64-bin | gzip | append-metadata
+  DEVICE_PACKAGES := kmod-r8168 kmod-r8125 kmod-nvme -urngd
+endef
+TARGET_DEVICES += rockchip_pico3399
+
 define Device/sharevdi_guangmiao-g4c
   DEVICE_VENDOR := SHAREVDI
   DEVICE_MODEL := GuangMiao G4C
