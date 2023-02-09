@@ -10,7 +10,7 @@
 	compatible = "pico3399", "rockchip,rk3399";
 	
 	aliases {
-	mdio-gpio0 = &mdio0;
+	//mdio-gpio0 = &mdio0;
 	};
 
 
@@ -24,98 +24,7 @@
 		clock-output-names = "clkin_gmac";
 		#clock-cells = <0>;
 	};
-	rtl8367s {
-		compatible = "realtek,rtl8367s", "rtl8367s";
-		realtek,extif1 = <1 0 1 1 1 1 1 1 2>;
-		mii-bus = <&mdio0>;
-	};
-	mdio0: mdio {
-		compatible = "virtual,mdio-gpio";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH
-			&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
-	};
-	
-	// switch0: switch {
-	// 	compatible = "realtek,rtl8367b";
-	// 	/* 22 = MDIO (has input reads), 21 = MDC (clock, output only) */
-	// 	mdc-gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
-	// 	mdio-gpios = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
-	// 	reset-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
 
-	// 	switch_intc: interrupt-controller {
-	// 		/* GPIO  provides the interrupt */
-	// 		interrupt-parent = <&gpio3>;
-	// 		interrupts = <RK_PB2 IRQ_TYPE_LEVEL_LOW>;
-	// 		interrupt-controller;
-	// 		#address-cells = <0>;
-	// 		#interrupt-cells = <1>;
-	// 	};
-
-	// 	ports {
-	// 		#address-cells = <1>;
-	// 		#size-cells = <0>;
-	// 		reg = <0>;
-	// 		port@0 {
-	// 			reg = <0>;
-	// 			label = "lan0";
-	// 			phy-handle = <&phy0>;
-	// 		};
-	// 		port@1 {
-	// 			reg = <1>;
-	// 			label = "lan1";
-	// 			phy-handle = <&phy1>;
-	// 		};
-	// 		port@2 {
-	// 			reg = <2>;
-	// 			label = "lan2";
-	// 			phy-handle = <&phy2>;
-	// 		};
-	// 		port@3 {
-	// 			reg = <3>;
-	// 			label = "lan3";
-	// 			phy-handle = <&phy3>;
-	// 		};
-	// 		port@4 {
-	// 			reg = <4>;
-	// 			label = "lan4";
-	// 			phy-handle = <&phy4>;
-	// 		};
-	// 	};
-
-	// 	mdio {
-	// 		compatible = "realtek,smi-mdio", "dsa-mdio";
-	// 		#address-cells = <1>;
-	// 		#size-cells = <0>;
-
-	// 		phy0: phy@0 {
-	// 			reg = <0>;
-	// 			interrupt-parent = <&switch_intc>;
-	// 			interrupts = <0>;
-	// 		};
-	// 		phy1: phy@1 {
-	// 			reg = <1>;
-	// 			interrupt-parent = <&switch_intc>;
-	// 			interrupts = <1>;
-	// 		};
-	// 		phy2: phy@2 {
-	// 			reg = <2>;
-	// 			interrupt-parent = <&switch_intc>;
-	// 			interrupts = <2>;
-	// 		};
-	// 		phy3: phy@3 {
-	// 			reg = <3>;
-	// 			interrupt-parent = <&switch_intc>;
-	// 			interrupts = <3>;
-	// 		};
-	// 		phy4: phy@4 {
-	// 			reg = <4>;
-	// 			interrupt-parent = <&switch_intc>;
-	// 			interrupts = <12>;
-	// 		};
-	// 	};
-	// };
 	leds {
 		compatible = "gpio-leds";
 		pinctrl-names = "default";
@@ -230,6 +139,65 @@
 		vin-supply = <&vcc3v3_sys>;
 	};
 	
+	rtl8367s {
+		compatible = "realtek,rtl8367b", "rtl8367b";
+		realtek,extif1 = <1 0 1 1 1 1 1 1 2>;
+		gpio-sda = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
+		gpio-sck = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
+		mii-bus = <&mdio>;
+	};
+	mdio: mdio {
+		compatible = "virtual,mdio-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH
+			&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
+	};
+	
+};
+&mdio {
+	status = "okay";
+
+	switch: switch@01 {
+		compatible = "realtek,rtl8367b", "rtl8367b";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		realtek,extif1 = <1 0 1 1 1 1 1 1 2>;
+		gpio-sda = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
+		gpio-sck = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
+		mii-bus = <&mdio>;
+		reset-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			
+			port@0 {
+				reg = <0>;
+				label = "lan1";
+			};
+	
+			port@1 {
+				reg = <1>;
+				label = "lan2";
+			};
+	
+			port@2 {
+				reg = <2>;
+				label = "lan3";
+			};
+	
+			port@3 {
+				reg = <3>;
+				label = "lan4";
+			};
+	
+			port@4 {
+				reg = <4>;
+				label = "wan";
+			};
+		};
+	};
 };
 
 &cpu_l0 {

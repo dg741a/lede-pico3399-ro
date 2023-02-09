@@ -213,22 +213,6 @@
 #define RTL8367B_RTL_MAGIC_ID_REG		0x13c2
 #define   RTL8367B_RTL_MAGIC_ID_VAL		0x0249
 
-#define RTL8367S_EXT_TXC_DLY_REG		0x13f9
-#define   RTL8367S_EXT1_GMII_TX_DELAY_SHIFT	12
-#define   RTL8367S_EXT0_GMII_TX_DELAY_SHIFT	9
-#define   RTL8367S_EXT_GMII_TX_DELAY_MASK	GENMASK(2,0)
-
-#define RTL8367S_SDS_MISC			0x1d11
-#define   RTL8367S_CFG_SGMII_RXFC		BIT(14)
-#define   RTL8367S_CFG_SGMII_TXFC		BIT(13)
-#define   RTL8367S_CFG_MAC8_SEL_HSGMII_SHIFT	11
-#define   RTL8367S_CFG_MAC8_SEL_HSGMII_MASK	BIT(11)
-#define   RTL8367S_CFG_SGMII_FDUP		BIT(10)
-#define   RTL8367S_CFG_SGMII_LINK		BIT(9)
-#define   RTL8367S_CFG_SGMII_SPD_SHIFT		7
-#define   RTL8367S_CFG_SGMII_SPD_MASK		GENMASK(8,7)
-#define   RTL8367S_CFG_MAC8_SEL_SGMII		BIT(6)
-
 #define RTL8367B_IA_CTRL_REG			0x1f00
 #define   RTL8367B_IA_CTRL_RW(_x)		((_x) << 1)
 #define   RTL8367B_IA_CTRL_RW_READ		RTL8367B_IA_CTRL_RW(0)
@@ -246,19 +230,9 @@
 
 #define RTL8367B_INTERNAL_PHY_REG(_a, _r)	(0x2000 + 32 * (_a) + (_r))
 
-/* SerDes indirect access */
-#define RTL8367S_SDS_INDACS_CMD_REG		0x6600
-#define   RTL8367S_SDS_CMD			BIT(7)
-#define   RTL8367S_SDS_RWOP			BIT(6)
-#define RTL8367S_SDS_INDACS_ADDR_REG		0x6601
-#define RTL8367S_SDS_INDACS_DATA_REG		0x6602
-
 #define RTL8367B_NUM_MIB_COUNTERS	58
 
-#define RTL8367S_PHY_ADDR		29
-
 #define RTL8367B_CPU_PORT_NUM		5
-#define RTL8367S_CPU_PORT_NUM		6
 #define RTL8367B_NUM_PORTS		8
 #define RTL8367B_NUM_VLANS		32
 #define RTL8367B_NUM_VIDS		4096
@@ -758,21 +732,23 @@ static int rtl8367b_init_regs(struct rtl8366_smi *smi)
 
 	rlvid = (chip_ver >> RTL8367B_CHIP_VER_RLVID_SHIFT) &
 		RTL8367B_CHIP_VER_RLVID_MASK;
-		switch (rlvid) {
-		case 0:
-			initvals = rtl8367r_vb_initvals_0;
-			count = ARRAY_SIZE(rtl8367r_vb_initvals_0);
-			break;
 
-		case 1:
-			initvals = rtl8367r_vb_initvals_1;
-			count = ARRAY_SIZE(rtl8367r_vb_initvals_1);
-			break;
+	switch (rlvid) {
+	case 0:
+		initvals = rtl8367r_vb_initvals_0;
+		count = ARRAY_SIZE(rtl8367r_vb_initvals_0);
+		break;
 
-		default:
-			dev_err(smi->parent, "unknow rlvid %u\n", rlvid);
-			return -ENODEV;
-		}
+	case 1:
+		initvals = rtl8367r_vb_initvals_1;
+		count = ARRAY_SIZE(rtl8367r_vb_initvals_1);
+		break;
+
+	default:
+		dev_err(smi->parent, "unknow rlvid %u\n", rlvid);
+		return -ENODEV;
+	}
+
 	/* TODO: disable RLTP */
 
 	return rtl8367b_write_initvals(smi, initvals, count);
@@ -945,14 +921,6 @@ static int rtl8367b_extif_init(struct rtl8366_smi *smi, int id,
 						     cfg->rxdelay);
 		if (err)
 			return err;
-		if (of_device_is_compatible(smi->parent->of_node,
-					    "realtek,rtl8367s")) {
-			/* disable pre-emphasis */
-			REG_WR(smi, RTL8367S_SDS_INDACS_DATA_REG, 0x28A0);
-			REG_WR(smi, RTL8367S_SDS_INDACS_ADDR_REG, 0x0482);
-			REG_WR(smi, RTL8367S_SDS_INDACS_CMD_REG,
-					RTL8367S_SDS_CMD | RTL8367S_SDS_RWOP);
-		}
 	}
 
 	return 0;
@@ -1593,33 +1561,11 @@ static int rtl8367b_detect(struct rtl8366_smi *smi)
 			"unknown chip num:%04x ver:%04x, mode:%04x\n",
 			chip_num, chip_ver, chip_mode);
 		return -ENODEV;
-	if (of_device_is_compatible(smi->parent->of_node, "realtek,rtl8367s")) {
-		if (chip_ver == 0x00a0)
-			chip_name = "8367S";
-		else
-			goto unknown_chip;
-	} else {
-			switch (chip_ver) {
-			case 0x1000:
-				chip_name = "8367RB";
-				break;
-			case 0x1010:
-				chip_name = "8367R-VB";
-				break;
-			default:
-				goto unknown_chip;
-			}
-		}
 	}
 
 	dev_info(smi->parent, "RTL%s chip found\n", chip_name);
 
 	return 0;
-unknown_chip:
-	dev_err(smi->parent,
-		"unknown chip num:%04x ver:%04x, mode:%04x\n",
-		chip_num, chip_ver, chip_mode);
-	return -ENODEV;
 }
 
 static struct rtl8366_smi_ops rtl8367b_smi_ops = {
@@ -1660,12 +1606,9 @@ static int  rtl8367b_probe(struct platform_device *pdev)
 	if (of_property_read_u32(pdev->dev.of_node, "cpu_port", &smi->cpu_port)
 	    || smi->cpu_port >= smi->num_ports)
 		smi->cpu_port = RTL8367B_CPU_PORT_NUM;
-
 	smi->num_vlan_mc = RTL8367B_NUM_VLANS;
 	smi->mib_counters = rtl8367b_mib_counters;
 	smi->num_mib_counters = ARRAY_SIZE(rtl8367b_mib_counters);
-	//if (of_device_is_compatible(pdev->dev.of_node, "realtek,rtl8367s"))
-	//	smi->phy_id = RTL8367S_PHY_ADDR;
 
 	err = rtl8366_smi_init(smi);
 	if (err)
@@ -1712,7 +1655,6 @@ static void rtl8367b_shutdown(struct platform_device *pdev)
 #ifdef CONFIG_OF
 static const struct of_device_id rtl8367b_match[] = {
 	{ .compatible = "realtek,rtl8367b" },
-	{ .compatible = "realtek,rtl8367s" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, rtl8367b_match);
@@ -1737,4 +1679,3 @@ MODULE_DESCRIPTION("Realtek RTL8367B ethernet switch driver");
 MODULE_AUTHOR("Gabor Juhos <juhosg@openwrt.org>");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("platform:" RTL8367B_DRIVER_NAME);
-
