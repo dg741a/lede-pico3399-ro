@@ -10,7 +10,7 @@
 	compatible = "pico3399", "rockchip,rk3399";
 	
 	aliases {
-	//mdio-gpio0 = &mdio0;
+
 	};
 
 
@@ -40,11 +40,6 @@
 			label = "blue:user2";
 			gpios = <&gpio2 RK_PD4 0>;
 			linux,default-trigger = "mmc1";
-		};
-		user_led3 {
-			label = "blue:user2";
-			gpios = <&gpio4 RK_PD3 0>;
-			//linux,default-trigger = "mmc1";
 		};
 	};
 
@@ -126,6 +121,7 @@
 		regulator-always-on;
 		regulator-boot-on;
 	};
+
 	vcc3v3_sd: vcc3v3-sd {
 		compatible = "regulator-fixed";
 		enable-active-high;
@@ -140,65 +136,23 @@
 	};
 	
 	rtl8367s {
-		compatible = "realtek,rtl8367b", "rtl8367b";
+		compatible = "realtek,rtl8367s";
+		mii-bus = <&mdio0>;
+		//reset-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
 		realtek,extif1 = <1 0 1 1 1 1 1 1 2>;
-		gpio-sda = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
-		gpio-sck = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
-		reset-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
-		mii-bus = <&mdio>;
 	};
-	mdio: mdio {
-		compatible = "virtual,mdio-gpio";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH
-			&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
-	};
-	
-};
-&mdio {
-	status = "okay";
 
-	switch: switch@01 {
-		compatible = "realtek,rtl8367b", "rtl8367b";
+	mdio0: mdio {
+		compatible = "virtual,mdio-gpio";
+
+		gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>, /* MDC */
+			<&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>; /* MDIO */
 		#address-cells = <1>;
 		#size-cells = <0>;
-		realtek,extif1 = <1 0 1 1 1 1 1 1 2>;
-		gpio-sda = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;
-		gpio-sck = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
-		mii-bus = <&mdio>;
-		reset-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			
-			port@0 {
-				reg = <0>;
-				label = "lan1";
-			};
-	
-			port@1 {
-				reg = <1>;
-				label = "lan2";
-			};
-	
-			port@2 {
-				reg = <2>;
-				label = "lan3";
-			};
-	
-			port@3 {
-				reg = <3>;
-				label = "lan4";
-			};
-	
-			port@4 {
-				reg = <4>;
-				label = "wan";
-			};
-		};
 	};
 };
+
+
 
 &cpu_l0 {
 	cpu-supply = <&vdd_cpu_l>;
@@ -588,6 +542,15 @@
 			rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
+};
+
+&gpio0 {
+    rtl8367s_reset {
+        gpio-hog;
+        gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
+        output-high;
+        line-name = "rtl8367s-reset";
+    };
 };
 
 &pwm0 {

@@ -16,7 +16,6 @@ rockchip_setup_interfaces()
 	friendlyarm,nanopi-r4s|\
 	friendlyarm,nanopi-r4se|\
 	rocktech,mpc1903|\
-	rockchip,pico3399|\
 	sharevdi,guangmiao-g4c|\
 	xunlong,orangepi-r1-plus|\
 	xunlong,orangepi-r1-plus-lts)
@@ -35,6 +34,12 @@ rockchip_setup_interfaces()
 		;;
 	friendlyarm,nanopi-r5s)
 		ucidef_set_interfaces_lan_wan "eth1 eth2" "eth0"
+		;;
+	rockchip,pico3399)
+		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
+		ucidef_add_switch_attr "switch0" "enable" "false"
 		;;
 	*)
 		ucidef_set_interface_lan 'eth0'
