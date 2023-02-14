@@ -150,6 +150,13 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 	};
+	
+	rtl8367s_reset {
+        gpio-hog;
+        gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_HIGH>;
+        output-high;
+        line-name = "rtl8367s-reset";
+    };
 };
 
 
@@ -499,16 +506,16 @@
 };
 
 &pcie0 {
-	ep-gpios = <&gpio4 RK_PD1 GPIO_ACTIVE_HIGH>;
+	//ep-gpios = <&gpio4 RK_PD1 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_sys>;
 	status = "okay";
 };
 
 &pinctrl {
 
-		sdmmc_pwren: sdmmc-pwren {
-			rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
+	sdmmc-pwren {
+		rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
+	};
 
 	gmac {
 		rgmii_sleep_pins: rgmii-sleep-pins {
@@ -555,16 +562,9 @@
 			rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
+	
 };
 
-&gpio0 {
-    rtl8367s_reset {
-        gpio-hog;
-        gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
-        output-high;
-        line-name = "rtl8367s-reset";
-    };
-};
 
 &pwm0 {
 	status = "disabled";

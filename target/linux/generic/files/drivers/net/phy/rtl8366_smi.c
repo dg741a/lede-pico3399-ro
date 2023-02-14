@@ -1487,12 +1487,12 @@ int rtl8366_smi_init(struct rtl8366_smi *smi)
 		goto err_free_sck;
 	}
 
-	err = rtl8366_init_vlan(smi);
-	if (err) {
-		dev_err(smi->parent, "VLAN initialization failed, err=%d\n",
-			err);
-		goto err_free_sck;
-	}
+	//err = rtl8366_init_vlan(smi);
+	//if (err) {
+	//	dev_err(smi->parent, "VLAN initialization failed, err=%d\n",
+	//		err);
+	//	goto err_free_sck;
+	//}
 
 	err = rtl8366_enable_all_ports(smi, 1);
 	if (err)

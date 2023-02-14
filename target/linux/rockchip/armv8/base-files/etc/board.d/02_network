@@ -36,7 +36,7 @@ rockchip_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "eth1 eth2" "eth0"
 		;;
 	pico3399)
-		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
+		ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
 		ucidef_add_switch "switch0" \
 			"0@eth0" "1:lan:1" "2:lan:2" "3:lan:3" "4:lan:4"
 		;;
