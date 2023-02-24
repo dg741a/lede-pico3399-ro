@@ -11,7 +11,7 @@
  
 --- /dev/null
 +++ b/arch/arm/dts/rk3399-pico3399.dts
-@@ -0,0 +1,668 @@
+@@ -0,0 +1,695 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/dts-v1/;
 +#include <dt-bindings/pwm/pwm.h>
@@ -20,9 +20,14 @@
 +#include "rk3399-opp.dtsi"
 +
 +/ {
-+	model = "pico3399";
-+	compatible = "pico3399", "rockchip,rk3399";
++	model = "rockchip,pico3399";
++	compatible = "rockchip,pico3399", "rockchip,rk3399";
 +	
++	aliases {
++
++	};
++
++
 +	chosen {
 +		stdout-path = "serial2:1500000n8";
 +	};
@@ -130,6 +135,7 @@
 +		regulator-always-on;
 +		regulator-boot-on;
 +	};
++
 +	vcc3v3_sd: vcc3v3-sd {
 +		compatible = "regulator-fixed";
 +		enable-active-high;
@@ -142,7 +148,26 @@
 +		regulator-name = "vcc3v3_sd";
 +		vin-supply = <&vcc3v3_sys>;
 +	};
++	
++	rtl8367s {
++		compatible = "realtek,rtl8367s";
++		mii-bus = <&mdio0>;
++		//reset-gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_LOW>;
++		realtek,extif1 = <1 0 1 1 1 1 1 1 2>;
++	};
++
++	mdio0: mdio {
++		compatible = "virtual,mdio-gpio";
++
++		gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>, /* MDC */
++			<&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>; /* MDIO */
++		#address-cells = <1>;
++		#size-cells = <0>;
++	};
++
 +};
++
++
 +
 +&cpu_l0 {
 +	cpu-supply = <&vdd_cpu_l>;
@@ -481,11 +506,20 @@
 +	pmu1830-supply = <&vcc_1v8>;
 +};
 +
-+&pinctrl {
++&pcie_phy {
++	assigned-clock-parents = <&cru SCLK_PCIEPHY_REF100M>;
++	assigned-clock-rates = <100000000>;
++	assigned-clocks = <&cru SCLK_PCIEPHY_REF>;
++	status = "okay";
++};
 +
-+		sdmmc_pwren: sdmmc-pwren {
-+			rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
-+		};
++&pcie0 {
++	//ep-gpios = <&gpio4 RK_PD1 GPIO_ACTIVE_HIGH>;
++	vpcie3v3-supply = <&vcc3v3_sys>;
++	status = "okay";
++};
++
++&pinctrl {
 +
 +	gmac {
 +		rgmii_sleep_pins: rgmii-sleep-pins {
@@ -532,7 +566,14 @@
 +			rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
 +		};
 +	};
++	rtl8367s_reset {
++        gpio-hog;
++        gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_HIGH>;
++        output-high;
++        line-name = "rtl8367s-reset";
++    };
 +};
++
 +
 +&pwm0 {
 +	status = "disabled";
@@ -553,30 +594,15 @@
 +	cap-sd-highspeed;
 +	cd-gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
 +	disable-wp;
++	vqmmc-supply = <&vcc_sd>;
++	vmmc-supply = <&vcc3v3_sd>;
 +	max-frequency = <150000000>;
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc_bus4>;
++	//sd-uhs-sdr104;
 +	status = "okay";
 +};
-+/*
-+&sdmmc {
-+	clock-frequency = <150000000>;
-+	clock-freq-min-max = <200000 150000000>;
-+	supports-sd;
-+	bus-width = <4>;
-+	cap-mmc-highspeed;
-+	cap-sd-highspeed;
-+	disable-wp;
-+	vqmmc-supply = <&vcc_sd>;
-+	vmmc-supply = <&vcc3v3_sd>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc0_det_l &sdmmc_bus4>;
-+	card-detect-delay = <800>;
-+	sd-uhs-sdr104;
-+	status = "okay";
-+	
-+};
-+*/
++
 +&sdhci {
 +	bus-width = <8>;
 +	mmc-hs400-1_8v;
@@ -680,6 +706,7 @@
 +&vopb_mmu {
 +	status = "okay";
 +};
++
 
 --- /dev/null
 +++ b/configs/rockchip-pico3399-rk3399_defconfig

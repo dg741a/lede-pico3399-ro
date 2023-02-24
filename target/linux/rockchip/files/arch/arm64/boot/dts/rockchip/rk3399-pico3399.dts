@@ -6,11 +6,12 @@
 #include "rk3399-opp.dtsi"
 
 / {
-	model = "pico3399";
-	compatible = "pico3399", "rockchip,rk3399";
+	model = "rockchip,pico3399";
+	compatible = "rockchip,pico3399", "rockchip,rk3399";
 	
 	aliases {
-
+		spi1 = &spi1;
+        spi2 = &spi2;
 	};
 
 
@@ -150,7 +151,6 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 	};
-	
 	rtl8367s_reset {
         gpio-hog;
         gpios = <&gpio4 RK_PD3 GPIO_ACTIVE_HIGH>;
@@ -214,7 +214,8 @@
 	ddc-i2c-bus = <&i2c3>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&hdmi_cec>;
-	status = "okay";
+	//status = "okay";
+	status = "disabled";
 };
 
 &hdmi_sound {
@@ -451,38 +452,27 @@
 	};
 };
 
-&i2c1 {
-	i2c-scl-rising-time-ns = <300>;
-	i2c-scl-falling-time-ns = <15>;
-	status = "disabled";
-};
+&spi1 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi1_clk &spi1_tx &spi1_cs0>;
+	//cs-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>; /*SPI-CS:PC3 and PA6*/
 
-&i2c3 {
-	i2c-scl-rising-time-ns = <450>;
-	i2c-scl-falling-time-ns = <15>;
-	status = "disabled";
-};
-
-&i2c4 {
-	i2c-scl-rising-time-ns = <600>;
-	i2c-scl-falling-time-ns = <40>;
-	status = "disabled";
-};
-
-&i2s0 {
-	rockchip,playback-channels = <8>;
-	rockchip,capture-channels = <8>;
-	status = "disabled";
-};
-
-&i2s1 {
-	rockchip,playback-channels = <2>;
-	rockchip,capture-channels = <2>;
-	status = "disabled";
-};
-
-&i2s2 {
-	status = "disabled";
+	 st7789v@0 {
+			status = "okay";
+            compatible = "sitronix,st7789v";
+            reg = <0>;
+	
+            spi-max-frequency = <12000000>;           
+			bgr;
+            fps = <30>;
+			rotate = <90>;
+            buswidth = <8>; 
+			dc-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>;  
+            reset-gpios = <&gpio1 RK_PA1 GPIO_ACTIVE_LOW>; 
+            led-gpios = <&gpio0 RK_PB3 GPIO_ACTIVE_HIGH>;           
+            debug = <1>; //等级0～7 越高信息越多
+       };
 };
 
 &io_domains {
@@ -512,10 +502,6 @@
 };
 
 &pinctrl {
-
-	sdmmc-pwren {
-		rockchip,pins = <0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
-	};
 
 	gmac {
 		rgmii_sleep_pins: rgmii-sleep-pins {
@@ -566,14 +552,6 @@
 };
 
 
-&pwm0 {
-	status = "disabled";
-};
-
-&pwm2 {
-	status = "disabled";
-};
-
 &saradc {
 	vref-supply = <&vcc1v8_s0>;
 	status = "okay";
@@ -585,30 +563,15 @@
 	cap-sd-highspeed;
 	cd-gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
 	disable-wp;
+	vqmmc-supply = <&vcc_sd>;
+	vmmc-supply = <&vcc3v3_sd>;
 	max-frequency = <150000000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc_bus4>;
+	//sd-uhs-sdr104;
 	status = "okay";
 };
-/*
-&sdmmc {
-	clock-frequency = <150000000>;
-	clock-freq-min-max = <200000 150000000>;
-	supports-sd;
-	bus-width = <4>;
-	cap-mmc-highspeed;
-	cap-sd-highspeed;
-	disable-wp;
-	vqmmc-supply = <&vcc_sd>;
-	vmmc-supply = <&vcc3v3_sd>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc0_det_l &sdmmc_bus4>;
-	card-detect-delay = <800>;
-	sd-uhs-sdr104;
-	status = "okay";
-	
-};
-*/
+
 &sdhci {
 	bus-width = <8>;
 	mmc-hs400-1_8v;
@@ -663,9 +626,6 @@
 	};
 };
 
-&uart0 {
-	status = "disabled";
-};
 
 &uart2 {
 	status = "okay";
@@ -703,12 +663,4 @@
 &usbdrd_dwc3_1 {
 	status = "okay";
 	dr_mode = "host";
-};
-
-&vopb {
-	status = "okay";
-};
-
-&vopb_mmu {
-	status = "okay";
 };
